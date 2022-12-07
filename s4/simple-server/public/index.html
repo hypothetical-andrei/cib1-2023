@@ -1,0 +1,80 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <script>
+    const SERVER = 'http://localhost:8080'
+    let kittens = []
+
+    const loadKittens = async () => {
+      try {
+        const response = await fetch(`${SERVER}/kittens`)
+        if (!response.ok) {
+          throw response
+        }
+        const data = await response.json()
+        return data
+      } catch (error) {
+        console.warn(error)
+      }
+    }
+
+
+    const updateKittenList = async () => {
+      const kittenList = document.getElementById('kittenList')
+      kittens = await loadKittens()
+      const kittenRows = kittens.map(e => `
+        <tr>
+          <td>${e.name}</td>
+          <td>${e.color}</td>
+        </tr>
+      `).join('')
+      const kittenTable = `
+        <table>
+          <tbody>
+            ${kittenRows}
+          </tbody>
+        </table>
+      `
+      kittenList.innerHTML = kittenTable
+    }
+
+    window.onload = async () => {
+      updateKittenList()
+
+      const kittenName = document.getElementById('kittenName')
+      const kittenColor = document.getElementById('kittenColor')
+      const addButton = document.getElementById('addButton')
+      
+      addButton.onclick = async () => {
+        try {
+          const payload = {
+            name: kittenName.value,
+            color: kittenColor.value
+          }
+          await fetch(`${SERVER}/kittens`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+          })
+          updateKittenList()
+        } catch (error) {
+          console.warn(error)
+        }
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="kittenList"></div>
+  <div id="addForm">
+    Name <input type="text" id="kittenName" />
+    Color: <input type="text" id="kittenColor" />
+    <input type="button" value="+" id="addButton" />
+  </div>
+</body>
+</html>
